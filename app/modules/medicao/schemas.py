@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date
+
 
 # Para receber dados via API (simulando upload)
 class MedicaoCreate(BaseModel):
@@ -17,3 +18,10 @@ class DashboardStats(BaseModel):
     balanco_energetico_mwh: float # Sobra ou Déficit
     status: str # "DÉFICIT", "SOBRA", "EQUILIBRADO"
     exposicao_financeira_estimada: float # Custo do PLD
+
+class GraficoPontoResponse(BaseModel):
+    data: date
+    consumo_total_mwh: float
+
+    class Config:
+        from_attributes = True

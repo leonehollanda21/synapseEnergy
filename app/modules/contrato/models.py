@@ -12,20 +12,22 @@ class ContratoModel(Base):
     data_fim = Column(Date, nullable=False)
     data_assinatura = Column(Date)
     status = Column(SAEnum(StatusContratoEnum), default=StatusContratoEnum.RASCUNHO)
-
-    # Discriminador para herança (SQLAlchemy sabe qual filho é qual por aqui)
     tipo_contrato = Column(String)
 
     unidade_id = Column(Integer, ForeignKey("unidades_consumidoras.id"))
     fornecedor_id = Column(Integer, ForeignKey("fornecedores.id"))
 
     # Relacionamentos
+    # Usamos apenas o nome da classe como string para evitar erros de importação circular
     unidade = relationship("UnidadeConsumidoraModel", back_populates="contratos")
     fornecedor = relationship("FornecedorModel", back_populates="contratos")
+
     documentos = relationship("DocumentoModel", back_populates="contrato")
+    volumes_mensais = relationship("ContratoVolumeModel", back_populates="contrato")
+
+    # --- CORREÇÃO: Adicionando relacionamento reverso de Alertas ---
     alertas = relationship("AlertaModel", back_populates="contrato")
 
-    # Configuração de Polimorfismo
     __mapper_args__ = {
         'polymorphic_identity': 'contrato',
         'polymorphic_on': tipo_contrato

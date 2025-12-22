@@ -11,10 +11,10 @@ service = FornecedorService()
 
 @router.post("/", response_model=FornecedorResponse, status_code=status.HTTP_201_CREATED)
 def criar_fornecedor(fornecedor: FornecedorCreate, db: Session = Depends(get_db)):
-    """Cadastra um novo fornecedor (Distribuidora ou Comercializadora)."""
+    """Cadastro de Fornecedor: Registra quem vende a energia. O sistema suporta tanto a Distribuidora (Enel, Light - dona do fio) quanto as Comercializadoras (vendedoras de energia no Mercado Livre)."""
     return service.criar_fornecedor(db, fornecedor)
 
 @router.get("/", response_model=List[FornecedorResponse])
 def listar_fornecedores(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Lista todos os fornecedores cadastrados."""
+    """Listagem de Fornecedores: Exibe os parceiros comerciais disponíveis para vincular aos contratos."""
     return service.listar_fornecedores(db, skip, limit)

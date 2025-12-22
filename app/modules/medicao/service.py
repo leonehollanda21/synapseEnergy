@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, cast, Date
 from app.modules.medicao.models import MedicaoModel
 from app.modules.medicao.schemas import DashboardStats, MedicaoCreate
 
@@ -46,3 +46,28 @@ class MedicaoService:
             status=status,
             exposicao_financeira_estimada=round(exposicao, 2)
         )
+
+    def obter_historico_grafico(self, db: Session, unidade_id: int):
+        """
+        Agrupa o consumo por dia para alimentar o gráfico de linha.
+        Retorna: Lista de {data, consumo_total_mwh}
+        """
+        dados = db.query(
+            cast(MedicaoModel.timestamp, Date).label('data'),
+            func.sum(MedicaoModel.consumo_ponta_kwh + MedicaoModel.consumo_fora_ponta_kwh).label('total_kwh')
+        ).filter(
+            MedicaoModel.unidade_id == unidade_id
+        ).group_by(
+            cast(MedicaoModel.timestamp, Date)
+        ).order_by(
+            cast(MedicaoModel.timestamp, Date)
+        ).all()
+
+        # Formata o retorno
+        resultado = []
+        for linha in dados:
+            resultado.append({
+                "data": linha.data,
+                "consumo_total_mwh": (linha.total_kwh or 0) / 1000.0  # Convertendo kWh para MWh
+            })
+        return resultado

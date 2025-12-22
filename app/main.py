@@ -11,7 +11,9 @@ from app.modules.fornecedor.routes import router as fornecedor_router
 from app.modules.contrato.routes import router as contrato_router
 from app.modules.unidadeConsumidora.routes import router as unidade_router
 from app.modules.medicao.routes import router as medicao_router
-
+import app.modules.fornecedor.models
+import app.modules.unidadeConsumidora.models
+import app.modules.contrato.models
 # Agora que a Base conhece os modelos, o create_all vai funcionar
 Base.metadata.create_all(bind=engine)
 
