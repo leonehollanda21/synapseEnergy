@@ -12,6 +12,7 @@ from app.modules.contrato.routes import router as contrato_router
 from app.modules.unidadeConsumidora.routes import router as unidade_router
 from app.modules.medicao.routes import router as medicao_router
 from app.modules.usuario.routes import router as usuario_router
+from app.modules.empresa.routes import router as empresa_router
 import app.modules.fornecedor.models
 import app.modules.unidadeConsumidora.models
 import app.modules.contrato.models
@@ -30,6 +31,8 @@ app.include_router(contrato_router)
 app.include_router(unidade_router)
 app.include_router(medicao_router)
 app.include_router(usuario_router)
+app.include_router(empresa_router)
+
 @app.get("/")
 def read_root():
     return {"message": "Tabelas criadas com sucesso e API Synapse rodando! 🚀"}
