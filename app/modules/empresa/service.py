@@ -1,3 +1,5 @@
+import hashlib
+
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
@@ -17,6 +19,7 @@ class EmpresaService:
         self.usuario_repository = UsuarioRepository()
 
     def cadastrar_empresa_consumidora(self, db: Session, dados: CadastroEmpresaConsumidoraRequest):
+        # 1. Validações de Unicidade
         if self.usuario_repository.get_by_email(db, dados.gestor.email):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -32,10 +35,12 @@ class EmpresaService:
         try:
             nova_empresa = self.empresa_repository.create(db, dados.empresa)
 
+            senha_pre_hash = hashlib.sha256(dados.gestor.senha.encode('utf-8')).hexdigest()
+
             novo_usuario = UsuarioModel(
                 nome=dados.gestor.nome,
                 email=dados.gestor.email,
-                senha_hash=get_password_hash(dados.gestor.senha),
+                senha_hash=get_password_hash(senha_pre_hash),
                 perfil=PerfilEnum.GESTOR,
                 empresa_id=nova_empresa.id
             )
@@ -48,6 +53,7 @@ class EmpresaService:
 
         except Exception as e:
             db.rollback()
+            print(f"Erro interno: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Erro ao cadastrar empresa e gestor: {str(e)}"
