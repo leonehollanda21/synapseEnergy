@@ -5,6 +5,10 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 
 load_dotenv()
+print("-" * 30)
+print(f"DEBUG: DATABASE_URL encontrada: {os.getenv('DATABASE_URL')}")
+print(f"DEBUG: DB_HOST encontrado: {os.getenv('DB_HOST')}")
+print("-" * 30)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
