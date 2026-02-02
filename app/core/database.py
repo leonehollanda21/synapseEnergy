@@ -6,46 +6,56 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Ajuste aqui para pegar as variaveis do seu .env corretamente
-# No GSport estava apenas "USER", aqui mantive os nomes padrões mais seguros
-USER = os.getenv("DB_USER", "postgres")
-PASSWORD = os.getenv("DB_PASSWORD", "root")
-DB_NAME = os.getenv("DB_NAME", "SYNENG")
-HOST = os.getenv("DB_HOST", "localhost")
-PORT = os.getenv("DB_PORT", "5432")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    USER = os.getenv("DB_USER", "postgres")
+    PASSWORD = os.getenv("DB_PASSWORD", "root")
+    DB_NAME = os.getenv("DB_NAME", "SYNENG")
+    HOST = os.getenv("DB_HOST", "localhost")
+    PORT = os.getenv("DB_PORT", "5432")
+    DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}"
+
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 def create_database_if_not_exists():
-    """Cria o banco de dados se ele não existir (PostgreSQL)"""
+    host = os.getenv("DB_HOST", "localhost")
+    if host != "localhost":
+        print("Ambiente de produção detectado: Pulando criação automática de DB.")
+        return
+
     try:
         conn = psycopg2.connect(
-            dbname="postgres", user=USER, password=PASSWORD, host=HOST, port=PORT
+            dbname="postgres",
+            user=os.getenv("DB_USER", "postgres"),
+            password=os.getenv("DB_PASSWORD", "root"),
+            host=host,
+            port=os.getenv("DB_PORT", "5432")
         )
         conn.autocommit = True
         cursor = conn.cursor()
 
-        cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = '{DB_NAME}'")
+        db_name = os.getenv("DB_NAME", "SYNENG")
+        cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = '{db_name}'")
         exists = cursor.fetchone()
 
         if not exists:
-            cursor.execute(f'CREATE DATABASE "{DB_NAME}"')
-            print(f"Banco de dados '{DB_NAME}' criado com sucesso!")
+            cursor.execute(f'CREATE DATABASE "{db_name}"')
+            print(f"Banco de dados '{db_name}' criado com sucesso!")
 
         cursor.close()
         conn.close()
     except Exception as e:
-        print(f"Nota: Verificação de banco ignorada ou falhou: {e}")
+        print(f"Nota: Verificação de banco ignorada: {e}")
 
-
-# Executa a criação do banco antes de conectar o SQLAlchemy
+# Executa apenas se necessário
 create_database_if_not_exists()
 
-DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}"
-
+# 3. Configuração do SQLAlchemy
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
-
 
 def get_db():
     db = SessionLocal()
