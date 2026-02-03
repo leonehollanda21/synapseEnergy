@@ -14,3 +14,13 @@ class UsuarioResponse(UsuarioBase):
 
     class Config:
         from_attributes = True
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    senha: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    perfil: str
+    nome: str

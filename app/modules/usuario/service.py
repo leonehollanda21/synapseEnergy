@@ -1,7 +1,11 @@
+from datetime import timedelta
+
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+
+from app.core.security import verify_password, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token
 from app.modules.usuario.repository import UsuarioRepository
-from app.modules.usuario.schemas import UsuarioCreate
+from app.modules.usuario.schemas import UsuarioCreate, LoginRequest
 
 
 class UsuarioService:
@@ -35,3 +39,29 @@ class UsuarioService:
                 detail="Usuário não encontrado"
             )
         return usuario
+
+    def autenticar_usuario(self, db: Session, login: LoginRequest):
+        # 1. Busca o usuário pelo e-mail
+        usuario = self.repository.get_by_email(db, login.email)
+
+        # 2. Verifica se existe e se a senha bate
+        if not usuario or not verify_password(login.senha, usuario.senha_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="E-mail ou senha incorretos",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        # 3. Gera o Token JWT
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"id":usuario.id,"sub": usuario.email, "perfil": usuario.perfil},
+            expires_delta=access_token_expires
+        )
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "perfil": usuario.perfil,
+            "nome": usuario.nome
+        }

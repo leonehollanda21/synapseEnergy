@@ -11,7 +11,7 @@ class UnidadeConsumidoraModel(Base):
     endereco = Column(String)
     tensao_fornecimento = Column(Float) # em kV
 
-    empresa_id = Column(Integer, ForeignKey("empresas.id"))
+    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False)
 
     # Relacionamentos
     empresa = relationship("EmpresaModel", back_populates="unidades")

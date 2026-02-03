@@ -6,6 +6,7 @@ class UnidadeBase(BaseModel):
     codigo_ccee: str
     endereco: Optional[str] = None
     tensao_fornecimento: float
+    empresa_id: int
 
 class UnidadeCreate(UnidadeBase):
     pass
