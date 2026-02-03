@@ -3,18 +3,22 @@ from typing import List
 from fastapi import APIRouter, Depends, UploadFile, File, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.core.security import validar_gestor
+from app.modules import UsuarioModel
 from app.modules.medicao.schemas import MedicaoCreate, DashboardStats, GraficoPontoResponse
 from app.modules.medicao.service import MedicaoService
 
 router = APIRouter(prefix="/medicao", tags=["Monitoramento e Consumo (RF2.2 - RF2.6)"])
 service = MedicaoService()
 
-@router.post("/manual", status_code=status.HTTP_201_CREATED)
-def inserir_medicao_manual(medicao: MedicaoCreate, db: Session = Depends(get_db)):
-    """Insere um registro de medição manual (RF2.2 via API)."""
-    service.registrar_medicao(db, medicao)
-    return {"message": "Medição registrada com sucesso"}
 
+@router.post("/manual", status_code=status.HTTP_201_CREATED)
+def inserir_medicao_manual(
+    medicao: MedicaoCreate,
+    db: Session = Depends(get_db),
+    #usuario: UsuarioModel = Depends(validar_gestor)
+):
+    return service.registrar_medicao(db, medicao)
 @router.get("/dashboard/{unidade_id}", response_model=DashboardStats)
 def obter_dashboard(unidade_id: int, db: Session = Depends(get_db)):
     """

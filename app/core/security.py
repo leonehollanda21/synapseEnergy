@@ -11,7 +11,7 @@ from passlib.context import CryptContext
 from app.core.database import get_db
 from app.modules.usuario.enums import PerfilEnum
 from app.modules.usuario.models import UsuarioModel
-
+from app.modules.unidadeConsumidora.models import UnidadeConsumidoraModel
 
 # Configurações do JWT (Em produção, use variáveis de ambiente)
 SECRET_KEY = "sua_chave_secreta_super_segura_e_longa_aqui"
@@ -81,6 +81,28 @@ class RoleChecker:
                 detail="Você não tem permissão para realizar esta operação."
             )
         return user
+
+
+def verificar_acesso_unidade(db: Session, unidade_id: int, usuario: UsuarioModel):
+
+    unidade = db.query(UnidadeConsumidoraModel).filter(UnidadeConsumidoraModel.id == unidade_id).first()
+
+    if not unidade:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unidade consumidora não encontrada."
+        )
+
+    if usuario.perfil == PerfilEnum.ADMIN:
+        return unidade
+
+    if unidade.empresa_id != usuario.empresa_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado: Esta unidade não pertence à sua empresa."
+        )
+
+    return unidade
 
 validar_gestor = RoleChecker([PerfilEnum.GESTOR, PerfilEnum.ADMIN])
 
