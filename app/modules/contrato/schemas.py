@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import date
 from app.modules.contrato.enums import StatusContratoEnum
 
@@ -43,11 +43,52 @@ class ContratoResponse(ContratoBase):
         from_attributes = True
 
 
-# --- SCHEMA PARA SAZONALIZAÇÃO (RF1.3) ---
-# Este schema define o formato de UM mês de volume.
-# Ele NÃO é uma tabela, é apenas a validação de dados.
 class ContratoVolumeCreate(BaseModel):
     ano: int
     mes: int
     volume_mwh: float
     preco_mwh: float
+
+
+class ContratoDashboardStats(BaseModel):
+    ativos: int
+    vencendo: int
+    vencidos: int
+    economia_estimada: float
+
+class ContratoListResponse(BaseModel):
+    id: int
+    tipo: str
+    fornecedor: str
+    vigencia: str
+    data_inicio: date
+    data_fim: date
+    status: str
+    valor_total: Optional[float] = 0.0 #
+    unidade_nome: str
+
+    class Config:
+        from_attributes = True
+
+
+class DocumentoAnexoResponse(BaseModel):
+    id: int
+    nome_arquivo: str
+    url: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class ContratoDetalheResponse(BaseModel):
+    id: int
+    tipo_contrato: str # Alterado de 'tipo' para 'tipo_contrato'
+    fornecedor_nome: str
+    data_inicio: date
+    data_fim: date
+    status: str
+    unidade_nome: str
+    alerta_vigencia: str
+    documentos: List[DocumentoAnexoResponse] = []
+
+    class Config:
+        from_attributes = True
